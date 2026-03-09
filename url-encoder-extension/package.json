@@ -1,0 +1,15 @@
+{
+  "name": "url-encoder-extension",
+  "version": "1.0.0",
+  "description": "Chrome extension to URL encode/decode selected text in URLs",
+  "scripts": {
+    "build": "node scripts/generate-png-icons.js && tsc && node scripts/build.js",
+    "watch": "tsc --watch",
+    "dev": "node scripts/generate-png-icons.js && tsc && node scripts/build.js",
+    "package": "node scripts/package.js"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.0.287",
+    "typescript": "^5.3.3"
+  }
+}

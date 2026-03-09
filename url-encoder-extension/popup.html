@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>URL Encoder</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <div class="container">
+      <h1 class="title">URL Encoder</h1>
+
+      <div class="section">
+        <label class="label" for="urlInput">URL（選択してエンコード/デコード）</label>
+        <textarea
+          id="urlInput"
+          class="url-input"
+          placeholder="URLを入力または貼り付けてください..."
+          rows="4"
+          spellcheck="false"
+        ></textarea>
+        <div id="selectionInfo" class="selection-info no-selection">
+          テキストを選択してエンコード/デコードできます
+        </div>
+      </div>
+
+      <div class="button-row">
+        <button id="encodeBtn" class="btn btn-primary" disabled>
+          <span class="btn-icon">&#x2191;</span>
+          エンコード
+        </button>
+        <button id="decodeBtn" class="btn btn-secondary" disabled>
+          <span class="btn-icon">&#x2193;</span>
+          デコード
+        </button>
+      </div>
+
+      <div id="feedback" class="feedback" style="display: none"></div>
+
+      <div class="section">
+        <label class="label">URL構造プレビュー</label>
+        <div id="resultDisplay" class="result-display">
+          <span class="placeholder">URLを入力してください</span>
+        </div>
+      </div>
+
+      <div class="button-row action-row">
+        <button id="copyBtn" class="btn btn-outline">
+          <span class="btn-icon">&#x2398;</span>
+          コピー
+        </button>
+        <button id="navigateBtn" class="btn btn-success">
+          <span class="btn-icon">&#x27A1;</span>
+          このURLに移動
+        </button>
+      </div>
+    </div>
+    <script src="popup.js"></script>
+  </body>
+</html>
