@@ -112,7 +112,9 @@ cmd_package() {
     cmd_build
   fi
 
-  node scripts/package.js
+  mkdir -p release
+  rm -f release/url-encoder-extension.zip
+  (cd dist && zip -r ../release/url-encoder-extension.zip .)
 
   success "パッケージング完了 → release/"
   echo ""

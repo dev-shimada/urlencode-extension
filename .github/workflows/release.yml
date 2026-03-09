@@ -51,7 +51,7 @@ jobs:
         run: sudo apt-get install -y zip
 
       - name: Package extension (.zip)
-        run: node scripts/package.js
+        run: mkdir -p release && (cd dist && zip -r ../release/url-encoder-extension.zip .)
         working-directory: url-encoder-extension
 
       - name: Rename artifact with version

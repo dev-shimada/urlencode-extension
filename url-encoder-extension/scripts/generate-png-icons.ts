@@ -1,8 +1,7 @@
-// Minimal PNG generator - creates simple colored PNG icons without external dependencies
-const fs = require("fs");
-const path = require("path");
+import fs from "fs";
+import path from "path";
 
-function crc32(buf) {
+function crc32(buf: Buffer): number {
   let crc = -1;
   const table = (() => {
     const t = new Uint32Array(256);
@@ -21,14 +20,14 @@ function crc32(buf) {
   return (crc ^ -1) >>> 0;
 }
 
-function writeUint32BE(buf, offset, value) {
+function writeUint32BE(buf: Buffer, offset: number, value: number): void {
   buf[offset] = (value >>> 24) & 0xff;
   buf[offset + 1] = (value >>> 16) & 0xff;
   buf[offset + 2] = (value >>> 8) & 0xff;
   buf[offset + 3] = value & 0xff;
 }
 
-function createChunk(type, data) {
+function createChunk(type: string, data: Buffer): Buffer {
   const typeBytes = Buffer.from(type, "ascii");
   const length = Buffer.alloc(4);
   writeUint32BE(length, 0, data.length);
@@ -38,8 +37,9 @@ function createChunk(type, data) {
   return Buffer.concat([length, typeBytes, data, crc]);
 }
 
-function adler32(data) {
-  let s1 = 1, s2 = 0;
+function adler32(data: Buffer): number {
+  let s1 = 1;
+  let s2 = 0;
   for (let i = 0; i < data.length; i++) {
     s1 = (s1 + data[i]) % 65521;
     s2 = (s2 + s1) % 65521;
@@ -47,9 +47,8 @@ function adler32(data) {
   return ((s2 << 16) | s1) >>> 0;
 }
 
-function deflateStore(data) {
-  // Use DEFLATE stored blocks (no compression)
-  const chunks = [];
+function deflateStore(data: Buffer): Buffer {
+  const chunks: Buffer[] = [];
   let offset = 0;
   while (offset < data.length) {
     const blockSize = Math.min(65535, data.length - offset);
@@ -78,14 +77,14 @@ function deflateStore(data) {
   return zlib;
 }
 
-function createPng(size, bgColor, textColor) {
-  const [br, bg, bb] = bgColor;
-  const [tr, tg, tb] = textColor;
+type RGB = [number, number, number];
 
-  // Create RGBA pixel data
+function createPng(size: number, bgColor: RGB, fgColor: RGB): Buffer {
+  const [br, bg, bb] = bgColor;
+  const [tr, tg, tb] = fgColor;
+
   const pixels = Buffer.alloc(size * size * 4);
 
-  // Fill background
   for (let i = 0; i < size * size; i++) {
     pixels[i * 4] = br;
     pixels[i * 4 + 1] = bg;
@@ -93,13 +92,11 @@ function createPng(size, bgColor, textColor) {
     pixels[i * 4 + 3] = 255;
   }
 
-  // Draw a simple "%" symbol pattern for 16x16
-  // For simplicity, draw a diagonal line pattern
   if (size >= 16) {
     const margin = Math.floor(size * 0.2);
-    // Draw top-left circle (simplified as filled square)
     const dotSize = Math.max(2, Math.floor(size * 0.18));
-    const drawDot = (cx, cy) => {
+
+    const drawDot = (cx: number, cy: number): void => {
       for (let dy = -dotSize; dy <= dotSize; dy++) {
         for (let dx = -dotSize; dx <= dotSize; dx++) {
           if (dx * dx + dy * dy <= dotSize * dotSize) {
@@ -116,12 +113,9 @@ function createPng(size, bgColor, textColor) {
       }
     };
 
-    // Top-left dot
     drawDot(margin + dotSize, margin + dotSize);
-    // Bottom-right dot
     drawDot(size - margin - dotSize, size - margin - dotSize);
 
-    // Diagonal slash
     const lineWidth = Math.max(1, Math.floor(size * 0.08));
     for (let i = 0; i < size; i++) {
       const x = Math.floor(margin + (i / size) * (size - 2 * margin));
@@ -138,23 +132,20 @@ function createPng(size, bgColor, textColor) {
     }
   }
 
-  // Add filter byte (0 = None) before each scanline
   const scanlines = Buffer.alloc(size * (1 + size * 4));
   for (let y = 0; y < size; y++) {
-    scanlines[y * (1 + size * 4)] = 0; // filter type None
+    scanlines[y * (1 + size * 4)] = 0;
     pixels.copy(scanlines, y * (1 + size * 4) + 1, y * size * 4, (y + 1) * size * 4);
   }
 
-  // IHDR chunk
   const ihdr = Buffer.alloc(13);
   writeUint32BE(ihdr, 0, size);
   writeUint32BE(ihdr, 4, size);
   ihdr[8] = 8;  // bit depth
-  ihdr[9] = 2;  // color type: RGB (changed to 6 for RGBA)
   ihdr[9] = 6;  // RGBA
-  ihdr[10] = 0; // compression
-  ihdr[11] = 0; // filter
-  ihdr[12] = 0; // interlace
+  ihdr[10] = 0;
+  ihdr[11] = 0;
+  ihdr[12] = 0;
 
   const pngSignature = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
   const compressed = deflateStore(scanlines);
@@ -177,17 +168,14 @@ if (!fs.existsSync(distIconsDir)) {
   fs.mkdirSync(distIconsDir, { recursive: true });
 }
 
-// Background: #1e1e2e (30, 30, 46), Icon: #cba6f7 (203, 166, 247)
-const bg = [30, 30, 46];
-const fg = [203, 166, 247];
+const bg: RGB = [30, 30, 46];   // #1e1e2e
+const fg: RGB = [203, 166, 247]; // #cba6f7
 
-[16, 48, 128].forEach((size) => {
+for (const size of [16, 48, 128]) {
   const png = createPng(size, bg, fg);
-  const srcPath = path.join(iconsDir, `icon${size}.png`);
-  const distPath = path.join(distIconsDir, `icon${size}.png`);
-  fs.writeFileSync(srcPath, png);
-  fs.writeFileSync(distPath, png);
+  fs.writeFileSync(path.join(iconsDir, `icon${size}.png`), png);
+  fs.writeFileSync(path.join(distIconsDir, `icon${size}.png`), png);
   console.log(`Created icon${size}.png (${png.length} bytes)`);
-});
+}
 
 console.log("Icons generated successfully!");
